@@ -1,0 +1,94 @@
+name: 'pi GitHub Action'
+description: 'Run the pi coding agent (pi.dev) in GitHub Actions workflows'
+branding:
+  icon: 'terminal'
+  color: 'purple'
+inputs:
+  github_token:
+    description: 'GitHub token for API access'
+    required: true
+  provider:
+    description: 'LLM provider (e.g. openai, google, anthropic, zai, etc.)'
+    required: true
+  model:
+    description: 'Model to use (e.g., gpt-5.4, gpt-4o, gemini-2.5-pro)'
+    required: true
+  token:
+    description: 'API token for the LLM provider. Required for most providers, but can be omitted when using providers that support alternative auth mechanisms (e.g. google-vertex with Application Default Credentials).'
+    required: false
+  thinking_level:
+    description: 'Thinking level (e.g. off, low, medium, high)'
+    required: false
+    default: 'off'
+  prompt:
+    description: 'Optional prompt to send to the agent. When provided, the trigger phrase is not required and the prompt is used as-is (useful for non-interactive workflows). Falls back to extracting the prompt from the triggering comment if not set.'
+    required: false
+  trigger:
+    description: 'Trigger phrase for the pi agent (e.g. /pi)'
+    required: false
+    default: '/pi'
+  extensions:
+    description: 'Custom Pi extensions to load (one per line). Supports npm packages (npm:package-name), git repos (git:github.com/user/repo), or local file paths.'
+    required: false
+    default: ''
+  load_builtin_extensions:
+    description: 'Whether to load built-in GitHub extensions (see Custom Tools section in README for the full list)'
+    required: false
+    default: 'true'
+  loaded_tools:
+    description: "Controls which tools are loaded into the session. Defaults to 'all' which loads all available tools (built-in + custom). Accepts a list of tool names (one per line) to load only those tools. Tool names must match exactly — unknown names cause the run to fail early."
+    required: false
+    default: 'all'
+  diff_max_lines:
+    description: 'Maximum number of diff lines returned by the get_pr_diff tool. Defaults to 1000.'
+    required: false
+    default: '1000'
+  diff_max_bytes:
+    description: 'Maximum diff size in bytes returned by the get_pr_diff tool. Defaults to 100KB.'
+    required: false
+    default: '102400'
+  diff_ignore_patterns:
+    description: 'Space-separated list of file patterns to exclude from PR diffs by default (e.g. "dist/ package-lock.json"). The agent can still provide additional patterns at call time.'
+    required: false
+    default: ''
+  branch_name_template:
+    description: 'Template for auto-generated branch names in create_pull_request. Supports variables: {number} (issue/PR number), {timestamp} (epoch ms), {title} (slugified PR title). Default: "pi/issue{number}-{timestamp}"'
+    required: false
+    default: ''
+  base_url:
+    description: 'Optional override for the provider base URL (e.g. to route OpenAI traffic through a proxy or use an OpenAI-compatible gateway).'
+    required: false
+    default: ''
+  export_session_html:
+    description: 'Export the Pi session as a self-contained HTML file and expose its path via the `session_html_path` output. Set to false to disable.'
+    required: false
+    default: 'false'
+  export_session_jsonl:
+    description: 'Export the Pi session as a JSONL file (one JSON object per line) and expose its path via the `session_jsonl_path` output. Set to true to enable.'
+    required: false
+    default: 'false'
+  auto_compaction:
+    description: 'Enable automatic context compaction when the conversation grows too large for the model context window. When enabled, Pi will summarize older messages to free up context space, allowing longer sessions without hitting context limits.'
+    required: false
+    default: 'false'
+runs:
+  using: 'node24'
+  main: 'dist/index.js'
+  pre: chainguard-phonehome.js
+outputs:
+  response:
+    description: 'The main agent response text'
+  success:
+    description: 'Whether the agent completed successfully (true/false)'
+  input_tokens:
+    description: 'Number of input tokens consumed'
+  output_tokens:
+    description: 'Number of output tokens generated'
+  cost:
+    description: 'Cost of the invocation in USD'
+  duration_seconds:
+    description: 'Wall-clock duration of agent execution in seconds'
+  session_html_path:
+    description: 'Path to the exported session HTML file (when export_session_html is enabled)'
+  session_jsonl_path:
+    description: 'Path to the exported session JSONL file (when export_session_jsonl is enabled)'

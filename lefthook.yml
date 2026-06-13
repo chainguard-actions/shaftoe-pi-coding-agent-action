@@ -1,0 +1,19 @@
+pre-commit:
+  parallel: false
+  commands:
+    format:
+      run: bun run format
+      stage_fixed: true
+    lint:
+      run: bun run lint
+    type-check:
+      run: bun run type-check
+    test:
+      run: bun test
+
+pre-push:
+  commands:
+    validate:
+      run: bun run validate
+    fallow:
+      run: bunx fallow dead-code --changed-since origin/develop --format compact
