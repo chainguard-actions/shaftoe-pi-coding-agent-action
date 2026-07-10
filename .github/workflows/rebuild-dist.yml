@@ -1,0 +1,67 @@
+name: Rebuild dist
+
+# Reusable dist-rebuild job: builds dist/ from the current checkout, verifies
+# the version stamp is actually present, and (if changed) commits a
+# provenance-rich message + pushes back to the source branch.
+#
+# GITHUB_REF_NAME / GITHUB_SHA come from the caller's event context
+# (reusable workflows inherit the caller's `github` context), so the stamp and
+# message record the exact commit the bundle was built from.
+
+on:
+  workflow_call:
+
+permissions:
+  contents: write
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    env:
+      # Explicit so the version helpers always resolve consistently,
+      # independent of runner defaults.
+      GITHUB_REF_NAME: ${{ github.ref_name }}
+      GITHUB_SHA: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: latest
+
+      - run: bun install --frozen-lockfile
+
+      - name: Build dist
+        run: bun run package
+
+      - name: Verify version stamp
+        run: |
+          set -euo pipefail
+          EXPECTED="$(bun run scripts/dist-version.ts)"
+          echo "Expecting version stamp: ${EXPECTED}"
+          if ! grep -qF "${EXPECTED}" dist/index.js; then
+            echo "::error::version stamp '${EXPECTED}' not found in dist/index.js — the bundle does not carry the expected provenance"
+            exit 1
+          fi
+          echo "Version stamp verified ✓"
+
+      - name: Check for dist changes
+        id: check
+        run: |
+          git add -f dist/
+          if git diff --cached --exit-code -- dist/; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            git reset -- dist/ > /dev/null 2>&1 || true
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit and push
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          MSG="$(bun run scripts/dist-commit-msg.ts)"
+          git commit --no-verify -m "${MSG}"
+          git push origin "${GITHUB_REF_NAME}"
