@@ -36,9 +36,9 @@ jobs:
           - 'packages/pi-platform-github'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 24
 
@@ -48,7 +48,7 @@ jobs:
 
       - name: Update dependencies
         id: update-deps
-        uses: shaftoe/update-bun-dependencies-action@03fd49bd13a4b0ac5591ca4c7831bb551a2cf968 # v1
+        uses: shaftoe/update-bun-dependencies-action@abc45f061017ae20782dae7e6684a7fdb728783c # v1
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
         with:
@@ -82,9 +82,9 @@ jobs:
           done
 
           if [ -n "${FILES}" ]; then
-            SAFE_NAME=$(printf '%s' "${MATRIX_DIR}" | sed 's|^\.$|root|; s|/|-|g' | tr -d '\n\r')
+            SAFE_NAME=$(printf '%s' "${MATRIX_DIR}" | sed 's|^\.$|root|; s|/|-|g')
             echo "file-list=${FILES}" >> "$GITHUB_OUTPUT"
-            printf 'safe-name=%s\n' "${SAFE_NAME}" >> "$GITHUB_OUTPUT"
+            echo "safe-name=${SAFE_NAME}" >> "$GITHUB_OUTPUT"
           else
             echo "has-changes=false" >> "$GITHUB_OUTPUT"
           fi
@@ -93,14 +93,15 @@ jobs:
         if: ${{ steps.changes.outputs.has-changes == 'true' }}
         shell: bash
         env:
-          SAFE_NAME: ${{ steps.changes.outputs.safe-name }}
+          SAFE_NAME_RAW: ${{ steps.changes.outputs.safe-name }}
           FILE_LIST: ${{ steps.changes.outputs.file-list }}
         run: |
-          SAFE_NAME_CLEAN=$(printf '%s' "${SAFE_NAME}" | tr -d '\n\r')
-          ARCHIVE="/tmp/updates-${SAFE_NAME_CLEAN}.tar"
-          read -ra FILES_ARRAY <<< "${FILE_LIST}"
-          tar cf "${ARCHIVE}" "${FILES_ARRAY[@]}"
-          printf 'archive-name=updates-%s.tar\n' "${SAFE_NAME_CLEAN}" >> "$GITHUB_OUTPUT"
+          SAFE_NAME=$(printf '%s' "${SAFE_NAME_RAW}" | tr -d '\n\r')
+          ARCHIVE="/tmp/updates-${SAFE_NAME}.tar"
+          # shellcheck disable=SC2086
+          tar cf "${ARCHIVE}" ${FILE_LIST}
+          safe_archive_name=$(printf '%s' "updates-${SAFE_NAME}.tar" | tr -d '\n\r')
+          echo "archive-name=${safe_archive_name}" >> "$GITHUB_OUTPUT"
         id: archive
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
@@ -115,7 +116,7 @@ jobs:
     if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Download update archives
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8

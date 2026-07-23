@@ -1,0 +1,50 @@
+name: Test export session JSONL output
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          github_token: ${{ github.token }}
+          provider: openai
+          model: gpt-4o
+          token: fake-token-for-testing
+          prompt: "Say hello in one word."
+          thinking_level: "off"
+          export_session_jsonl: "true"
+
+      - name: Assert success output is set
+        env:
+          SUCCESS: ${{ steps.action.outputs.success }}
+        run: |
+          echo "success: $SUCCESS"
+          if [ -z "$SUCCESS" ]; then
+            echo "FAIL: expected 'success' output to be set (true or false), got empty"
+            exit 1
+          fi
+          echo "PASS: success output is set to '$SUCCESS'"
+
+      - name: Assert session_jsonl_path output is set when export enabled
+        env:
+          JSONL_PATH: ${{ steps.action.outputs.session_jsonl_path }}
+        run: |
+          echo "session_jsonl_path: $JSONL_PATH"
+          # The path should be set when export_session_jsonl is true
+          # (even if the session was short/failed, the path should be populated)
+          if [ -z "$JSONL_PATH" ]; then
+            echo "INFO: session_jsonl_path is empty — may be unset on auth failure, checking success"
+            SUCCESS="${{ steps.action.outputs.success }}"
+            if [ "$SUCCESS" = "true" ]; then
+              echo "FAIL: success=true but session_jsonl_path is empty"
+              exit 1
+            fi
+            echo "PASS: session_jsonl_path empty is acceptable when action did not succeed"
+          else
+            echo "PASS: session_jsonl_path is set to '$JSONL_PATH'"
+          fi

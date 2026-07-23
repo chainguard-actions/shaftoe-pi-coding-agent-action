@@ -1,0 +1,41 @@
+name: Test basic prompt invocation
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          github_token: ${{ github.token }}
+          provider: openai
+          model: gpt-4o
+          token: fake-token-for-testing
+          prompt: "Say hello in one word."
+          thinking_level: "off"
+
+      - name: Assert success output is set (true or false)
+        env:
+          SUCCESS: ${{ steps.action.outputs.success }}
+        run: |
+          echo "success: $SUCCESS"
+          if [ -z "$SUCCESS" ]; then
+            echo "FAIL: expected 'success' output to be set (true or false), got empty"
+            exit 1
+          fi
+          echo "PASS: success output is set to '$SUCCESS'"
+
+      - name: Assert duration_seconds output is set
+        env:
+          DURATION: ${{ steps.action.outputs.duration_seconds }}
+        run: |
+          echo "duration_seconds: $DURATION"
+          if [ -z "$DURATION" ]; then
+            echo "FAIL: expected 'duration_seconds' output to be set, got empty"
+            exit 1
+          fi
+          echo "PASS: duration_seconds output is set to '$DURATION'"
