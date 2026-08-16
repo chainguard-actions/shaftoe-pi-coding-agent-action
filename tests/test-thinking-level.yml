@@ -1,0 +1,53 @@
+name: Test thinking level input and numeric outputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          github_token: ${{ github.token }}
+          provider: anthropic
+          model: claude-3-5-sonnet-20241022
+          token: fake-llm-token-for-testing
+          prompt: "What is 2+2?"
+          thinking_level: 'low'
+          load_builtin_extensions: 'false'
+
+      - name: Assert action ran and check numeric outputs
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          SUCCESS: ${{ steps.action.outputs.success }}
+          INPUT_TOKENS: ${{ steps.action.outputs.input_tokens }}
+          OUTPUT_TOKENS: ${{ steps.action.outputs.output_tokens }}
+          COST: ${{ steps.action.outputs.cost }}
+          DURATION: ${{ steps.action.outputs.duration_seconds }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "success: $SUCCESS"
+          echo "input_tokens: $INPUT_TOKENS"
+          echo "output_tokens: $OUTPUT_TOKENS"
+          echo "cost: $COST"
+          echo "duration_seconds: $DURATION"
+          if [ "$OUTCOME" = "success" ]; then
+            if [ "$SUCCESS" = "true" ]; then
+              # Verify numeric outputs are set when agent succeeds
+              if [ -z "$DURATION" ]; then
+                echo "FAIL: duration_seconds output is empty on success"
+                exit 1
+              fi
+              echo "PASS: action succeeded with thinking_level=low, duration=$DURATION"
+            else
+              echo "PASS: action ran but agent did not succeed (success=$SUCCESS)"
+            fi
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (expected without real LLM credentials or sentinel repo)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

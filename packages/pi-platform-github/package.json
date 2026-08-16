@@ -1,0 +1,27 @@
+{
+  "name": "@alexanderfortin/pi-platform-github",
+  "version": "2.26.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./tools/*": "./src/tools/*.ts",
+    "./git/*": "./src/git/*.ts",
+    "./context": "./src/context.ts",
+    "./reactions": "./src/reactions.ts",
+    "./comments": "./src/comments.ts",
+    "./constants": "./src/constants.ts",
+    "./context-utils": "./src/context-utils.ts",
+    "./types": "./src/types.ts"
+  },
+  "dependencies": {
+    "@alexanderfortin/pi-orchestrator": "workspace:*",
+    "@js-temporal/polyfill": "^0.5.1",
+    "@octokit/core": "^7.0.6",
+    "@octokit/plugin-rest-endpoint-methods": "^17.0.0",
+    "ignore": "^7.0.6",
+    "simple-git": "^3.36.0"
+  },
+  "devDependencies": {}
+}
