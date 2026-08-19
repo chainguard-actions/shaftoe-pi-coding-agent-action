@@ -1,0 +1,57 @@
+name: Test basic failure with invalid credentials
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          github_token: ${{ github.token }}
+          provider: openai
+          model: gpt-4o
+          token: fake-api-token-for-testing
+          prompt: "Say hello"
+
+      - name: Assert action ran (step outcome is failure or success)
+        run: |
+          echo "step outcome: ${{ steps.action.outcome }}"
+          # The action should have run (not skipped)
+          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
+            echo "FAIL: action was skipped, expected it to run"
+            exit 1
+          fi
+          echo "PASS: action ran (outcome=${{ steps.action.outcome }})"
+
+      - name: Assert success output is false on failure
+        env:
+          SUCCESS: ${{ steps.action.outputs.success }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "success output: $SUCCESS"
+          # When the action fails (invalid token), success should be 'false'
+          if [ "$OUTCOME" = "failure" ]; then
+            if [ "$SUCCESS" != "false" ]; then
+              echo "FAIL: expected success=false on failure, got: $SUCCESS"
+              exit 1
+            fi
+            echo "PASS: success=false as expected on failure"
+          else
+            echo "INFO: action succeeded (outcome=$OUTCOME), success=$SUCCESS"
+          fi
+
+      - name: Assert duration_seconds output is set
+        env:
+          DURATION: ${{ steps.action.outputs.duration_seconds }}
+        run: |
+          echo "duration_seconds: $DURATION"
+          if [ -z "$DURATION" ]; then
+            echo "FAIL: duration_seconds output was not set"
+            exit 1
+          fi
+          echo "PASS: duration_seconds is set to '$DURATION'"

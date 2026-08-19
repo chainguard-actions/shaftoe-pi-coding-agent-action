@@ -1,0 +1,58 @@
+name: Test export session HTML option
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Test that export_session_html input is accepted without error
+      # (the action will fail at the LLM API call stage with invalid token,
+      # before reaching the export step — so session_html_path won't be set)
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          github_token: ${{ github.token }}
+          provider: openai
+          model: gpt-4o
+          token: fake-token-for-export-test
+          prompt: "Say hello"
+          export_session_html: "true"
+          export_session_jsonl: "true"
+
+      - name: Assert action ran (not skipped)
+        run: |
+          echo "outcome: ${{ steps.action.outcome }}"
+          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
+            echo "FAIL: action was skipped"
+            exit 1
+          fi
+          echo "PASS: action ran with export options"
+
+      - name: Assert success output is set
+        env:
+          SUCCESS: ${{ steps.action.outputs.success }}
+        run: |
+          echo "success: $SUCCESS"
+          if [ -z "$SUCCESS" ]; then
+            echo "FAIL: success output was not set"
+            exit 1
+          fi
+          if [ "$SUCCESS" != "true" ] && [ "$SUCCESS" != "false" ]; then
+            echo "FAIL: success must be 'true' or 'false', got: $SUCCESS"
+            exit 1
+          fi
+          echo "PASS: success output is '$SUCCESS'"
+
+      - name: Assert duration_seconds is set
+        env:
+          DURATION: ${{ steps.action.outputs.duration_seconds }}
+        run: |
+          echo "duration_seconds: $DURATION"
+          if [ -z "$DURATION" ]; then
+            echo "FAIL: duration_seconds was not set"
+            exit 1
+          fi
+          echo "PASS: duration_seconds='$DURATION'"

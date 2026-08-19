@@ -1,0 +1,56 @@
+name: Test thinking level input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Test that the action accepts thinking_level=high without input parsing errors.
+      # The action will fail at the LLM API call stage (invalid token),
+      # but should not fail at input validation.
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          github_token: ${{ github.token }}
+          provider: anthropic
+          model: claude-3-5-sonnet-20241022
+          token: fake-token
+          prompt: "What is 2+2?"
+          thinking_level: "high"
+
+      - name: Assert action ran (not skipped)
+        run: |
+          echo "outcome: ${{ steps.action.outcome }}"
+          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
+            echo "FAIL: action was skipped"
+            exit 1
+          fi
+          echo "PASS: action ran with thinking_level=high"
+
+      - name: Assert success output is set to false (invalid token)
+        env:
+          SUCCESS: ${{ steps.action.outputs.success }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "success: $SUCCESS"
+          # The action should fail due to invalid token, not due to input parsing
+          if [ "$OUTCOME" = "failure" ] && [ "$SUCCESS" != "false" ]; then
+            echo "FAIL: expected success=false on failure, got: $SUCCESS"
+            exit 1
+          fi
+          echo "PASS: thinking_level=high was accepted, success=$SUCCESS"
+
+      - name: Assert duration_seconds is always set
+        env:
+          DURATION: ${{ steps.action.outputs.duration_seconds }}
+        run: |
+          echo "duration_seconds: $DURATION"
+          if [ -z "$DURATION" ]; then
+            echo "FAIL: duration_seconds was not set"
+            exit 1
+          fi
+          echo "PASS: duration_seconds='$DURATION'"

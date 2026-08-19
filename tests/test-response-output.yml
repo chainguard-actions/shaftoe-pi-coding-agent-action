@@ -1,0 +1,61 @@
+name: Test response output on failure
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          github_token: ${{ github.token }}
+          provider: anthropic
+          model: claude-3-5-haiku-20241022
+          token: fake-anthropic-token
+          prompt: "List the files in the current directory"
+          thinking_level: "off"
+
+      - name: Assert action ran
+        run: |
+          echo "step outcome: ${{ steps.action.outcome }}"
+          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
+            echo "FAIL: action was skipped"
+            exit 1
+          fi
+          echo "PASS: action ran"
+
+      - name: Assert response output is set on failure
+        env:
+          RESPONSE: ${{ steps.action.outputs.response }}
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "response: $RESPONSE"
+          # On failure, the response output should contain the error message
+          if [ "$OUTCOME" = "failure" ]; then
+            if [ -z "$RESPONSE" ]; then
+              echo "FAIL: response output was empty on failure"
+              exit 1
+            fi
+            echo "PASS: response output is non-empty on failure: '$RESPONSE'"
+          else
+            echo "INFO: action succeeded, response=$RESPONSE"
+          fi
+
+      - name: Assert success output is set
+        env:
+          SUCCESS: ${{ steps.action.outputs.success }}
+        run: |
+          echo "success: $SUCCESS"
+          if [ -z "$SUCCESS" ]; then
+            echo "FAIL: success output was not set"
+            exit 1
+          fi
+          if [ "$SUCCESS" != "true" ] && [ "$SUCCESS" != "false" ]; then
+            echo "FAIL: success output must be 'true' or 'false', got: $SUCCESS"
+            exit 1
+          fi
+          echo "PASS: success output is '$SUCCESS'"

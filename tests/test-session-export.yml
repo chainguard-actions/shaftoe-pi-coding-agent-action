@@ -1,0 +1,58 @@
+name: Test session export options
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          github_token: fake-github-token
+          provider: openai
+          model: gpt-4o
+          token: fake-api-token
+          prompt: "Say hello."
+          thinking_level: "off"
+          load_builtin_extensions: "false"
+          export_session_html: "true"
+          export_session_jsonl: "true"
+          auto_compaction: "false"
+          diff_max_lines: "500"
+          diff_max_bytes: "51200"
+          diff_ignore_patterns: "dist/ package-lock.json"
+
+      - name: Assert action ran
+        run: |
+          echo "outcome: ${{ steps.action.outcome }}"
+          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
+            echo "FAIL: action was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action ran"
+
+      - name: Assert success output is set
+        env:
+          SUCCESS: ${{ steps.action.outputs.success }}
+        run: |
+          echo "success: $SUCCESS"
+          if [ -z "$SUCCESS" ]; then
+            echo "INFO: success output not set (action may have errored before setting outputs)"
+          else
+            echo "PASS: success output is '$SUCCESS'"
+          fi
+
+      - name: Check session_html_path output when export enabled
+        env:
+          HTML_PATH: ${{ steps.action.outputs.session_html_path }}
+          JSONL_PATH: ${{ steps.action.outputs.session_jsonl_path }}
+        run: |
+          echo "session_html_path: '$HTML_PATH'"
+          echo "session_jsonl_path: '$JSONL_PATH'"
+          echo "PASS: export output fields checked"

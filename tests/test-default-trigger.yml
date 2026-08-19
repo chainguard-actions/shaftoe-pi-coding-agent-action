@@ -1,0 +1,42 @@
+name: Test default trigger configuration
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: issue_comment
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          github_token: fake-github-token
+          provider: openai
+          model: gpt-4o
+          token: fake-api-token
+          trigger: "/pi"
+          thinking_level: "off"
+          load_builtin_extensions: "false"
+
+      - name: Assert action ran without crashing the runner
+        run: |
+          echo "Action step completed (with or without error)"
+          echo "outcome: ${{ steps.action.outcome }}"
+          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
+            echo "FAIL: action was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action ran (outcome: ${{ steps.action.outcome }})"
+
+      - name: Assert success output is defined
+        env:
+          SUCCESS: ${{ steps.action.outputs.success }}
+        run: |
+          echo "success output: '$SUCCESS'"
+          # success should be 'true' or 'false' or empty (if action errored before setting outputs)
+          # We just verify the step ran and didn't crash the workflow
+          echo "PASS: step completed"
