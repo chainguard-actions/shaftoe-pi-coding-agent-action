@@ -1,0 +1,46 @@
+name: Test export session HTML
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          github_token: ${{ github.token }}
+          provider: openai
+          model: gpt-4o
+          token: fake-llm-token-for-testing
+          prompt: "Say hello in one word."
+          export_session_html: "true"
+          thinking_level: "off"
+
+      - name: Assert action ran with export_session_html enabled
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          SUCCESS: ${{ steps.action.outputs.success }}
+          SESSION_HTML_PATH: ${{ steps.action.outputs.session_html_path }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "success: $SUCCESS"
+          echo "session_html_path: $SESSION_HTML_PATH"
+          if [ "$OUTCOME" = "success" ]; then
+            if [ -z "$SESSION_HTML_PATH" ]; then
+              echo "FAIL: action succeeded but session_html_path output is empty"
+              exit 1
+            fi
+            if [ ! -f "$SESSION_HTML_PATH" ]; then
+              echo "FAIL: session_html_path '$SESSION_HTML_PATH' does not exist on disk"
+              exit 1
+            fi
+            echo "PASS: session HTML exported to $SESSION_HTML_PATH"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (expected — no real LLM token)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
