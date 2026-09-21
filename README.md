@@ -13,6 +13,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | v2.26.0 | [`v2.26.0`](https://github.com/chainguard-actions/shaftoe-pi-coding-agent-action/tree/v2.26.0) | [`a31e6b4`](https://github.com/shaftoe/pi-coding-agent-action/commit/a31e6b423dcd323e2c8d8f7bb569a5b7ba43f631) |
 | v2.27.0 | [`v2.27.0`](https://github.com/chainguard-actions/shaftoe-pi-coding-agent-action/tree/v2.27.0) | [`0698813`](https://github.com/shaftoe/pi-coding-agent-action/commit/0698813906fb1f23425bd742510e3080d624840d) |
 | v2.27.1 | [`v2.27.1`](https://github.com/chainguard-actions/shaftoe-pi-coding-agent-action/tree/v2.27.1) | [`c1e0b11`](https://github.com/shaftoe/pi-coding-agent-action/commit/c1e0b11c0b667f8e8fe9d0df8810c0745bfff59e) |
+| v2.28.1 | [`v2.28.1`](https://github.com/chainguard-actions/shaftoe-pi-coding-agent-action/tree/v2.28.1) | [`853a9af`](https://github.com/shaftoe/pi-coding-agent-action/commit/853a9af5ac64e79c79fa6bb3958314aa1acf7e92) |
 
 ## Privacy
 
