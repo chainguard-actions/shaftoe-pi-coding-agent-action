@@ -1,0 +1,43 @@
+{
+  "branches": ["v2"],
+  "plugins": [
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        "releaseRules": [
+          { "type": "chore", "scope": "deps", "release": "patch" },
+          { "type": "fix", "scope": "deps", "release": "patch" }
+        ]
+      }
+    ],
+    "@alexanderfortin/semantic-release-keep-a-changelog",
+    [
+      "@semantic-release/npm",
+      {
+        "npmPublish": false
+      }
+    ],
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "pnpm exec tsx scripts/bump-readme-version.ts ${nextRelease.version} && pnpm run sync-versions && pnpm run sync-lockfile && pnpm run update-readme && pnpm run package"
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": ["package.json", "packages/*/package.json", "pnpm-lock.yaml", "CHANGELOG.md", "README.md", "dist/index.js"],
+        "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }
+    ],
+    [
+      "@semantic-release/github",
+      {
+        "assets": ["dist/*"],
+        "successComment": false
+      }
+    ]
+  ],
+  "tagFormat": "v${version}",
+  "npmPublish": false
+}

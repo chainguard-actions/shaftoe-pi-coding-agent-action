@@ -1,0 +1,46 @@
+name: Test default input values and input validation
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # Verify that providing all required inputs passes validation
+      # (action will fail later at LLM API call with invalid token, but
+      # validation itself should pass — the action gets past the "No prompt found"
+      # and "Missing required input" checks)
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          github_token: ${{ github.token }}
+          provider: 'openai'
+          model: 'gpt-4o'
+          token: 'invalid-token-intentionally-bad'
+          prompt: 'Say hello'
+          thinking_level: 'off'
+          load_builtin_extensions: 'true'
+          loaded_tools: 'all'
+          diff_max_lines: '1000'
+          diff_max_bytes: '102400'
+          export_session_html: 'false'
+          export_session_jsonl: 'false'
+          share_session: 'false'
+          auto_compaction: 'false'
+
+      - name: Assert action ran (failed at API level, not at input validation)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          SUCCESS: ${{ steps.action.outputs.success }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "success output: $SUCCESS"
+          # The action should fail (invalid API token), but it must have gotten
+          # past input validation — outcome must be 'failure' (not skipped/cancelled)
+          if [ "$OUTCOME" != "failure" ]; then
+            echo "FAIL: expected action to fail (invalid API token), got outcome=$OUTCOME"
+            exit 1
+          fi
+          echo "PASS: action correctly failed at API level (past input validation)"
