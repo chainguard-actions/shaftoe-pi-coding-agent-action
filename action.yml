@@ -1,0 +1,165 @@
+name: 'pi GitHub Action'
+description: 'Run the pi coding agent (pi.dev) in GitHub Actions workflows'
+branding:
+  icon: 'terminal'
+  color: 'purple'
+
+inputs:
+  github_token:
+    description: 'GitHub token for API access. The default `GITHUB_TOKEN` works for all standard operations. To use `share_session`, provide a classic PAT (`gist` scope), fine-grained PAT (Account → Gists: read/write), or GitHub App token instead — the default `GITHUB_TOKEN` cannot create gists.'
+    required: true
+
+  provider:
+    description: 'LLM provider (e.g. openai, google, anthropic, zai, etc.)'
+    required: true
+
+  model:
+    description: 'Model to use (e.g., gpt-5.4, gpt-4o, gemini-2.5-pro)'
+    required: true
+
+  token:
+    description: 'API token for the LLM provider. Required for most providers, but can be omitted when using providers that support alternative auth mechanisms (e.g. google-vertex with Application Default Credentials).'
+    required: false
+
+  thinking_level:
+    description: 'Thinking level (e.g. off, low, medium, high, etc.)'
+    required: false
+    default: 'off'
+
+  prompt:
+    description: 'Optional prompt to send to the agent. When provided, the trigger phrase is not required and the prompt is used as-is (useful for non-interactive workflows such as PR reviews, assignment triggers, or scheduled tasks). Falls back to extracting the prompt from the triggering comment if not set.'
+    required: false
+
+  trigger:
+    description: 'Trigger phrase for the pi agent (e.g. /pi )'
+    required: false
+    default: '/pi '
+
+  extensions:
+    description: 'Custom Pi extensions to load (one per line). Supports npm packages (npm:package-name), git repos (git:github.com/user/repo), or local file paths.'
+    required: false
+    default: ''
+
+  load_builtin_extensions:
+    description: 'Whether to load built-in GitHub extensions (see Custom Tools section in README for the full list)'
+    required: false
+    default: 'true'
+
+  loaded_tools:
+    description: "Controls which tools are loaded into the session. Defaults to 'all' which loads all available tools (built-in + custom). Accepts a list of tool names (one per line) to load only those tools. Tool names must match exactly — unknown names cause the run to fail early."
+    required: false
+    default: 'all'
+
+  diff_max_lines:
+    description: 'Maximum number of diff lines returned by the get_pr_diff tool. Defaults to 1000.'
+    required: false
+    default: '1000'
+
+  diff_max_bytes:
+    description: 'Maximum diff size in bytes returned by the get_pr_diff tool. Defaults to 100KB.'
+    required: false
+    default: '102400'
+
+  diff_ignore_patterns:
+    description: 'Space-separated list of file patterns to exclude from PR diffs by default (e.g. "dist/ package-lock.json"). The agent can still provide additional patterns at call time.'
+    required: false
+    default: ''
+
+  branch_name_template:
+    description: 'Template for auto-generated branch names in create_pull_request. Supports variables: {number} (issue/PR number), {timestamp} (epoch ms), {title} (slugified PR title). Default: "pi/issue{number}-{timestamp}"'
+    required: false
+    default: ''
+
+  base_url:
+    description: 'Optional override for the provider base URL (e.g. to route OpenAI traffic through a proxy or use an OpenAI-compatible gateway).'
+    required: false
+    default: ''
+
+  export_session_html:
+    description: 'Export the Pi session as a self-contained HTML file and expose its path via the `session_html_path` output. Set to false to disable. Auto-enabled when share_session is true.'
+    required: false
+    default: 'false'
+
+  export_session_jsonl:
+    description: 'Export the Pi session as a JSONL file (one JSON object per line) and expose its path via the `session_jsonl_path` output. Set to true to enable.'
+    required: false
+    default: 'false'
+
+  share_session:
+    description: 'Share the session like pi''s /share command: upload the exported session HTML to a secret GitHub Gist and surface a pi.dev-style viewer link. Uses the github_token input to create the gist, so provide a PAT/App token with gist scope there (the default GITHUB_TOKEN cannot create gists). Auto-enables export_session_html.'
+    required: false
+    default: 'false'
+
+  share_gist_provider:
+    description: 'Storage backend for session sharing. Defaults to `github` (GitHub Gists + pi.dev viewer). Set to `opengist` to upload to a self-hosted Opengist instance instead — in that case also set share_gist_api_url (and a share_gist_token or github_token with gist:write access). When opengist is used, share_url points at a self-rendering raw-HTML link (the pi.dev viewer cannot read non-GitHub gists).'
+    required: false
+    default: 'github'
+
+  share_gist_api_url:
+    description: 'API URL for the share gist provider. Required when share_gist_provider is `opengist`: the instance''s create endpoint, e.g. `https://gist.l3x.in/api/gists` (Opengist''s REST API lives under /api/, not /api/v1/). Optional override for the github provider (defaults to https://api.github.com/gists).'
+    required: false
+    default: ''
+
+  share_gist_token:
+    description: 'Token used to create the shared gist. For opengist, an Opengist access token (og_…) with the gist:write scope — this is required (there is no github_token fallback, since a GitHub token cannot authenticate against a self-hosted Opengist instance). For the github provider, falls back to github_token when unset, so it keeps working with a single token.'
+    required: false
+    default: ''
+
+  share_gist_expiration:
+    description: 'Time-to-live for shared gists (opengist provider only; GitHub Gists have no expiry). One of `1hour`, `12hours`, `1day`, `7days`, `15days`, or `never`. Defaults to `7days` — shared sessions are ephemeral CI artifacts. Set to `never` to keep them indefinitely.'
+    required: false
+    default: ''
+
+  auto_compaction:
+    description: 'Enable automatic context compaction when the conversation grows too large for the model context window. When enabled, Pi will summarize older messages to free up context space, allowing longer sessions without hitting context limits.'
+    required: false
+    default: 'false'
+
+  pr_number:
+    description: 'Pull request number to target. Use this with workflow_dispatch to run the agent on a specific PR without a triggering event. When set, the action fetches PR context and posts the result as a comment on the specified PR.'
+    required: false
+    default: ''
+
+  update_comment:
+    description: 'Whether to update/overwrite the bot''s previous comment on the issue/PR instead of creating a new one.'
+    required: false
+    default: 'false'
+
+  platform:
+    description: 'Git hosting platform the action is running on. One of github (default), codeberg, forgejo, or gitea (alias for forgejo). Determines platform-specific behaviour such as the action-run URL format used in the "View action run" footer. The platform is no longer auto-detected from the server URL, so set this explicitly when running on Forgejo/Codeberg/Gitea (e.g. platform: forgejo).'
+    required: false
+    default: 'github'
+
+  server_url:
+    description: 'Override the forge server URL (e.g. https://git.example.com). Self-hosted runners (Forgejo/Gitea behind Docker or internal networking) may advertise a GITHUB_SERVER_URL that is only reachable from inside the host network (e.g. http://localhost:3000); set this to the externally-reachable URL so that derived links (commits, PRs, action runs) point at the right host. When unset, the runner-advertised GITHUB_SERVER_URL is used. Note: this only affects user-facing URLs — the API client keeps using the runner-advertised GITHUB_API_URL, and platform selection is controlled by the platform input.'
+    required: false
+    default: ''
+
+runs:
+  pre: chainguard-phonehome.js
+  using: 'node24'
+  main: 'dist/index.js'
+
+outputs:
+  response:
+    description: 'The main agent response text'
+  success:
+    description: 'Whether the agent completed successfully (true/false)'
+  input_tokens:
+    description: 'Number of input tokens consumed'
+  output_tokens:
+    description: 'Number of output tokens generated'
+  cost:
+    description: 'Cost of the invocation in USD'
+  duration_seconds:
+    description: 'Wall-clock duration of agent execution in seconds'
+  session_html_path:
+    description: 'Path to the exported session HTML file (when export_session_html is enabled, or when share_session is enabled)'
+  session_jsonl_path:
+    description: 'Path to the exported session JSONL file (when export_session_jsonl is enabled)'
+  share_url:
+    description: 'Shareable session link. For the github provider: a pi.dev viewer link (https://pi.dev/session/#<gistId>). For the opengist provider: a self-rendering raw-HTML URL on the configured instance. Set when share_session is enabled and succeeds.'
+  gist_url:
+    description: 'URL of the gist holding the shared session HTML (GitHub Gist page or Opengist page), when share_session is enabled and succeeds'
+  gist_id:
+    description: 'ID of the gist holding the shared session HTML, when share_session is enabled and succeeds'

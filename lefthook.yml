@@ -1,0 +1,19 @@
+pre-commit:
+  parallel: false
+  commands:
+    format:
+      run: pnpm run format
+      stage_fixed: true
+    lint:
+      run: pnpm run lint
+    type-check:
+      run: pnpm run type-check
+    test:
+      run: pnpm test
+
+pre-push:
+  commands:
+    validate:
+      run: pnpm run validate
+    fallow:
+      run: pnpm exec fallow dead-code --changed-since origin/develop --format compact
