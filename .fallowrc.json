@@ -1,0 +1,47 @@
+{
+  "entry": [
+    "packages/pi-action/src/run.ts",
+    "packages/pi-orchestrator/src/index.ts",
+    "packages/pi-platform-github/src/index.ts",
+    "packages/pi-cli/src/index.ts"
+  ],
+  "ignorePatterns": [
+    "dist/**",
+    "coverage/**",
+    "node_modules/**",
+    "scripts/**",
+    "packages/pi-action/src/import-meta-url.js"
+  ],
+  "ignoreDependencies": [
+    "@alexanderfortin/semantic-release-keep-a-changelog",
+    "tsx",
+    "@earendil-works/pi-coding-agent",
+    "@js-temporal/polyfill",
+    "ignore"
+  ],
+  "rules": {
+    "unused-exports": "warn",
+    "unused-files": "warn",
+    "unused-types": "warn",
+    "unused-dependencies": "error",
+    "unused-dev-dependencies": "warn",
+    "unused-enum-members": "off",
+    "duplicate-exports": "warn"
+  },
+  "duplicates": {
+    "minLines": 6,
+    "minTokens": 50,
+    "ignore": [
+      "**/tests/**",
+      "**/*.spec.ts",
+      "**/*.test.ts"
+    ]
+  },
+  "health": {
+    "ignore": [
+      "**/tests/**",
+      "**/*.spec.ts",
+      "**/*.test.ts"
+    ]
+  }
+}
