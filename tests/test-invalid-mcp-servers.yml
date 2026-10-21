@@ -1,0 +1,37 @@
+name: Test invalid mcp_servers JSON fails fast
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          github_token: ${{ github.token }}
+          provider: openai
+          model: gpt-4o
+          token: not-a-real-llm-key
+          prompt: say hello
+          refresh_model_catalog: 'false'
+          mcp_servers: '{"broken": '
+      - name: Assert action failed during config parsing
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          SUCCESS: ${{ steps.action.outputs.success }}
+          RESPONSE: ${{ steps.action.outputs.response }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "success: $SUCCESS"
+          echo "response: $RESPONSE"
+          if [ "$OUTCOME" != "failure" ]; then
+            echo "FAIL: expected failure outcome"
+            exit 1
+          fi
+          if [ -n "$SUCCESS" ] || [ -n "$RESPONSE" ]; then
+            echo "FAIL: expected no outputs when mcp_servers is malformed"
+            exit 1
+          fi
+          echo "PASS"
