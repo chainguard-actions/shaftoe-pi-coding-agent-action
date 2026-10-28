@@ -1,6 +1,16 @@
 {
   "owner": "shaftoe",
   "repo": "pi-coding-agent-action",
-  "version": "",
-  "url": "https://github.com/shaftoe/pi-coding-agent-action"
+  "version": "v2.30.0",
+  "commit_sha": "f7496a9aea9798c5d52d39096d98d5c5b16559b3",
+  "url": "https://github.com/shaftoe/pi-coding-agent-action",
+  "policy_sha": "374911c4be584df24e6da57af2d990570ef0f859",
+  "test_policy_sha": "843adf9e4b8f85d0c08b27b9d0b09dd094b54702",
+  "test_agent_version": "2",
+  "harden_agent_version": "2",
+  "node_artifact": {
+    "gcs_uri": "gs://patch-actions-node-artifacts/node-artifacts/shaftoe/pi-coding-agent-action/v2.30.0/sha256-ace2d8ee63c55f652658c5bf4c2fc94bb4a3222d5688763e4729a80985eae6b2.tar.gz",
+    "sha256": "ace2d8ee63c55f652658c5bf4c2fc94bb4a3222d5688763e4729a80985eae6b2",
+    "size_bytes": 34413615
+  }
 }
