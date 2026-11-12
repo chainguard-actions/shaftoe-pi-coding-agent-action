@@ -1,6 +1,21 @@
 {
   "owner": "shaftoe",
   "repo": "pi-coding-agent-action",
-  "version": "",
-  "url": "https://github.com/shaftoe/pi-coding-agent-action"
+  "version": "v2.30.2",
+  "commit_sha": "c9c89dcabbf612ab2a528acfad8785a8075e22f3",
+  "url": "https://github.com/shaftoe/pi-coding-agent-action",
+  "policy_sha": "374911c4be584df24e6da57af2d990570ef0f859",
+  "test_policy_sha": "843adf9e4b8f85d0c08b27b9d0b09dd094b54702",
+  "test_agent_version": "2",
+  "harden_agent_version": "2",
+  "node_artifact": {
+    "gcs_uri": "gs://patch-actions-node-artifacts/node-artifacts/shaftoe/pi-coding-agent-action/v2.30.2/sha256-b44cc13a0e01c7eec18b88ee9ffb0c6834c1b33d845e5f06f16e4b4aa747f2ab.tar.gz",
+    "sha256": "b44cc13a0e01c7eec18b88ee9ffb0c6834c1b33d845e5f06f16e4b4aa747f2ab",
+    "size_bytes": 29388206
+  },
+  "dist_artifact": {
+    "gcs_uri": "gs://patch-actions-node-artifacts/dist-artifacts/shaftoe/pi-coding-agent-action/v2.30.2/sha256-63d8286a72d547fdad818d98955d9c9e976d00ca2d9acbefb5b817ea04945d29.tar.gz",
+    "sha256": "63d8286a72d547fdad818d98955d9c9e976d00ca2d9acbefb5b817ea04945d29",
+    "size_bytes": 2985670
+  }
 }

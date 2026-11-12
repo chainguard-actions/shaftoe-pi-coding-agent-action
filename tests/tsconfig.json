@@ -1,0 +1,8 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+  },
+  "include": ["**/*.spec.ts", "helpers/**/*.ts", "e2e/fixtures/**/*.ts"],
+  "exclude": ["../node_modules", "../dist"],
+}
