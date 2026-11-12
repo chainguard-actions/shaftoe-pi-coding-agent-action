@@ -19,6 +19,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | v2.29.1 | [`v2.29.1`](https://github.com/chainguard-actions/shaftoe-pi-coding-agent-action/tree/v2.29.1) | [`babaa1a`](https://github.com/shaftoe/pi-coding-agent-action/commit/babaa1a909dd7021abc538be6f20c1757b3b8fb7) | [`HARDENING.md`](https://github.com/chainguard-actions/shaftoe-pi-coding-agent-action/blob/v2.29.1/HARDENING.md) |
 | v2.30.0 | [`v2.30.0`](https://github.com/chainguard-actions/shaftoe-pi-coding-agent-action/tree/v2.30.0) | [`f7496a9`](https://github.com/shaftoe/pi-coding-agent-action/commit/f7496a9aea9798c5d52d39096d98d5c5b16559b3) | [`HARDENING.md`](https://github.com/chainguard-actions/shaftoe-pi-coding-agent-action/blob/v2.30.0/HARDENING.md) |
 | v2.30.1 | [`v2.30.1`](https://github.com/chainguard-actions/shaftoe-pi-coding-agent-action/tree/v2.30.1) | [`381f578`](https://github.com/shaftoe/pi-coding-agent-action/commit/381f578da466b8d2ef48f0fdb8a940f276fe4c3c) | [`HARDENING.md`](https://github.com/chainguard-actions/shaftoe-pi-coding-agent-action/blob/v2.30.1/HARDENING.md) |
+| v2.30.2 | [`v2.30.2`](https://github.com/chainguard-actions/shaftoe-pi-coding-agent-action/tree/v2.30.2) | [`c9c89dc`](https://github.com/shaftoe/pi-coding-agent-action/commit/c9c89dcabbf612ab2a528acfad8785a8075e22f3) | [`HARDENING.md`](https://github.com/chainguard-actions/shaftoe-pi-coding-agent-action/blob/v2.30.2/HARDENING.md) |
 
 ## Privacy
 
